@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from supabase import create_client, Client
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -15,6 +17,10 @@ app = FastAPI()
 
 class User(BaseModel):
     name: str
+
+@app.get("/favicon.ico")
+def favicon():
+    return FileResponse("stuff/favicon.ico")
 
 @app.get("/")
 def test():
