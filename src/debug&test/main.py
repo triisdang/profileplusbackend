@@ -12,11 +12,6 @@ SUPABASE_KEY = os.getenv("SUPABASEKEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = FastAPI()
 
-
-class User(BaseModel):
-    name: str
-
-@app.get("/")
+@app.get("/test")
 def test():
-    response = supabase.table("test").select("*").execute()
-    return response.data
+    supabase.table("test").insert({"name": "fucker"}).execute()
