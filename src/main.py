@@ -38,9 +38,10 @@ def test():
 @app.post("/postimage")
 def postimage(url: str = Header(...), username: str = Header(...)):
     response = supabase.table('pendingDB').insert({
-        "created_by": username,
+        "created_by": username, 
         "url": url,
-        "allowed" : False
+        "allowed" : False,
+        "ticket" : "thick of it"
     }).execute()
 
     if response.data:
