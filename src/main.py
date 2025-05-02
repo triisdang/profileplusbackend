@@ -26,3 +26,6 @@ def favicon():
 def test():
     response = supabase.table("test").select("*").execute()
     return response.data
+@app.get("/postimage")
+def postimage():
+    return "wip"
