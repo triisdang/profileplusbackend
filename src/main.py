@@ -5,7 +5,10 @@ from supabase import create_client, Client
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
+import random
 from fastapi.middleware.cors import CORSMiddleware
+import string
+
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASEURL")
@@ -22,6 +25,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def randomstuff():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
 
 class User(BaseModel):
     name: str
@@ -37,14 +43,18 @@ def test():
 
 @app.post("/postimage")
 def postimage(url: str = Header(...), username: str = Header(...)):
+    randomticket = randomstuff()
     response = supabase.table('pendingDB').insert({
-        "created_by": username, 
+        "created_by": username,
         "url": url,
-        "allowed" : False,
-        "ticket" : "thick of it"
+        "allowed": False,
+        "ticket": randomticket
     }).execute()
 
     if response.data:
-        return {"message": f"success, db: {response.data}"}
-    else:
-        return {"message": "Failed to insert data"}
+        return {"message": f'"success",ticket : {randomticket} , db: {response.data}'}
+    return {"message": "Failed to insert data"}
+
+@app.post("/ticket")
+def ticketcheck(ticket: str = Header(...)):
+    return "wip"
