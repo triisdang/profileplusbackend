@@ -65,3 +65,6 @@ def ticketcheck(ticket: str = Header(...)):
         return response.data
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"ticket not found or error: {str(e)}")
+
+
+# LOGIN / SIGN UP #
