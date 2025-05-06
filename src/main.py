@@ -14,6 +14,7 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASEURL")
 SUPABASE_KEY = os.getenv("SUPABASEKEY")
+JWT_SECRET = os.getenv("JwtSecret")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = FastAPI()
@@ -68,3 +69,13 @@ def ticketcheck(ticket: str = Header(...)):
 
 
 # LOGIN / SIGN UP #
+
+@app.post("/signup")
+def signup(email: str = Header(...), password: str = Header(...)):
+    result = supabase.auth.sign_up({"email": email, "password": password})
+    return result
+
+@app.post("/login")
+def login(email: str = Header(...), password: str = Header(...)):
+    result = supabase.auth.sign_in_with_password({"email": email, "password": password})
+    return result
