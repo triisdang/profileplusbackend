@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Header
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from supabase import create_client, Client
@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 import random
+import json
 from fastapi.middleware.cors import CORSMiddleware
 import string
 
@@ -16,6 +17,7 @@ SUPABASE_KEY = os.getenv("SUPABASEKEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = FastAPI()
+jsonget=json.loads
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,6 +57,11 @@ def postimage(url: str = Header(...), username: str = Header(...)):
         return {"message": f'"success",ticket : {randomticket} , db: {response.data}'}
     return {"message": "Failed to insert data"}
 
+
 @app.post("/ticket")
 def ticketcheck(ticket: str = Header(...)):
-    return "wip"
+    try:
+        response = supabase.table('pendingDB').select("*").eq("ticket", ticket).single().execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"ticket not found or error: {str(e)}")
