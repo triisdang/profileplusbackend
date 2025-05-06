@@ -1,14 +1,13 @@
 from fastapi import FastAPI, Header, HTTPException, Depends
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from supabase import create_client, Client
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 import random
-import json
-from fastapi.middleware.cors import CORSMiddleware
 import string
+import jwt
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -18,7 +17,6 @@ JWT_SECRET = os.getenv("JwtSecret")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = FastAPI()
-jsonget=json.loads
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +27,8 @@ app.add_middleware(
 )
 
 def verify_token(authorization: str = Header(...)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header missing")
     try:
         scheme, token = authorization.split()
         if scheme.lower() != "bearer":
@@ -69,7 +69,6 @@ def postimage(url: str = Header(...), username: str = Header(...)):
         return {"message": f'"success",ticket : {randomticket} , db: {response.data}'}
     return {"message": "Failed to insert data"}
 
-
 @app.post("/ticket")
 def ticketcheck(ticket: str = Header(...)):
     try:
@@ -78,18 +77,21 @@ def ticketcheck(ticket: str = Header(...)):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"ticket not found or error: {str(e)}")
 
-
 # LOGIN / SIGN UP / VERIFY SESSION #
 
 @app.post("/signup")
 def signup(email: str = Header(...), password: str = Header(...)):
     result = supabase.auth.sign_up({"email": email, "password": password})
-    return result
+    if result.error:
+        raise HTTPException(status_code=400, detail=result.error.message)
+    return {"message": "Sign-up successful", "data": result.data}
 
 @app.post("/login")
 def login(email: str = Header(...), password: str = Header(...)):
     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    return result
+    if result.error:
+        raise HTTPException(status_code=400, detail=result.error.message)
+    return {"message": "Login successful", "data": result.data}
 
 @app.get("/session")
 def protected_route(user=Depends(verify_token)):
