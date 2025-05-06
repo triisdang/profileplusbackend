@@ -28,6 +28,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def verify_token(authorization: str = Header(...)):
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
 def randomstuff():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
@@ -68,7 +79,7 @@ def ticketcheck(ticket: str = Header(...)):
         raise HTTPException(status_code=404, detail=f"ticket not found or error: {str(e)}")
 
 
-# LOGIN / SIGN UP #
+# LOGIN / SIGN UP / VERIFY SESSION #
 
 @app.post("/signup")
 def signup(email: str = Header(...), password: str = Header(...)):
@@ -79,3 +90,7 @@ def signup(email: str = Header(...), password: str = Header(...)):
 def login(email: str = Header(...), password: str = Header(...)):
     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
     return result
+
+@app.get("/session")
+def protected_route(user=Depends(verify_token)):
+    return {"message": "You are authenticated", "user": user}
