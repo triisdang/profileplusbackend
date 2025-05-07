@@ -82,10 +82,12 @@ def ticketcheck(ticket: str = Header(...)):
 
 @app.post("/signup")
 def signup(email: str = Header(...), password: str = Header(...)):
+    print(f"Attempting sign-up with email: {email}")
     result = supabase.auth.sign_up({"email": email, "password": password})
-    if result.error:
-        raise HTTPException(status_code=400, detail=result.error.message)
-    return {"message": "Sign-up successful", "data": result.data}
+    if result.user is None: 
+        raise HTTPException(status_code=400, detail=result.error.message if result.error else "Unknown error occurred")
+    
+    return {"message": "Sign-up successful", "data": result.user}
 
 @app.post("/login")
 def login(email: str = Header(...), password: str = Header(...)):
