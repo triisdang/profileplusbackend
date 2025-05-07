@@ -86,15 +86,20 @@ def signup(email: str = Header(...), password: str = Header(...)):
     result = supabase.auth.sign_up({"email": email, "password": password})
     if result.user is None: 
         raise HTTPException(status_code=400, detail=result.error.message if result.error else "Unknown error occurred")
-    
-    return {"message": "Sign-up successful", "data": result.user}
+    return {"message": "Sign-up successful"}
 
 @app.post("/login")
 def login(email: str = Header(...), password: str = Header(...)):
+    print(f"Attempting login with email: {email}")
     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    if result.error:
-        raise HTTPException(status_code=400, detail=result.error.message)
-    return {"message": "Login successful", "data": result.data}
+    
+    if result.user is None: 
+        raise HTTPException(status_code=400, detail=result.error.message if result.error else "Invalid email or password")
+    
+    # Extract the JWT token
+    jwt_token = result.session.access_token 
+    
+    return {"message": "Login successful", "token": jwt_token}
 
 @app.get("/session")
 def protected_route(user=Depends(verify_token)):
