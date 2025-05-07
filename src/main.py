@@ -7,6 +7,7 @@ import os
 import random
 import string
 import jwt
+from jwt.algorithms import get_default_algorithms
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -33,7 +34,7 @@ def verify_token(authorization: str = Header(...)):
         scheme, token = authorization.split()
         if scheme.lower() != "bearer":
             raise HTTPException(status_code=401, detail="Invalid auth scheme")
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[get_default_algorithms()["HS256"]]) 
         return payload
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
